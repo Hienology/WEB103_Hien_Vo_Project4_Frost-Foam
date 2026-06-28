@@ -5,6 +5,66 @@ import { estimatePrepTime, calculatePriceBreakdown } from './utils/pricing'
 import { drinksApi } from './services/drinksApi'
 import './App.css'
 
+const PREVIEW_PALETTES = {
+  milkshake: { base: '#ffd8c2', glow: '#ffb78d', cup: '#fff1e8' },
+  frappe: { base: '#cbb89e', glow: '#9f7f5f', cup: '#f5eadf' },
+  iced_latte: { base: '#d7bf9f', glow: '#c29a6b', cup: '#f8efe1' },
+  cream_soda: { base: '#b9e4d6', glow: '#74c7ad', cup: '#ecfbf5' },
+  matcha: { base: '#bdd9aa', glow: '#86b56c', cup: '#eef8e5' },
+}
+
+const FLAVOR_SWATCHES = {
+  vanilla: '#f8e7bf',
+  caramel: '#d79a55',
+  hazelnut: '#a8713f',
+  mocha: '#7b4b30',
+  strawberry: '#eb8ea6',
+  matcha: '#98c26f',
+}
+
+const TOPPING_ICONS = {
+  whipped_cream: '✦',
+  boba: '●',
+  jelly: '◆',
+  chocolate_chips: '•',
+  cinnamon: '≈',
+}
+
+const DRINK_PHOTOS = {
+  milkshake: 'https://loremflickr.com/800/900/milkshake?lock=21',
+  frappe: 'https://loremflickr.com/800/900/frappuccino?lock=22',
+  iced_latte: 'https://loremflickr.com/800/900/iced-latte?lock=23',
+  cream_soda: 'https://loremflickr.com/800/900/cream-soda?lock=24',
+  matcha: 'https://loremflickr.com/800/900/matcha-latte?lock=25',
+}
+
+const TOPPING_PHOTOS = {
+  whipped_cream: 'https://loremflickr.com/240/240/whipped-cream?lock=31',
+  boba: 'https://loremflickr.com/240/240/bubble-tea?lock=32',
+  jelly: 'https://loremflickr.com/240/240/jelly-dessert?lock=33',
+  chocolate_chips: 'https://loremflickr.com/240/240/chocolate-chips?lock=34',
+  cinnamon: 'https://loremflickr.com/240/240/cinnamon?lock=35',
+}
+
+const FLAVOR_PHOTOS = {
+  vanilla: 'https://loremflickr.com/800/900/vanilla-dessert?lock=41',
+  caramel: 'https://loremflickr.com/800/900/caramel-sauce?lock=42',
+  hazelnut: 'https://loremflickr.com/800/900/hazelnut-coffee?lock=43',
+  mocha: 'https://loremflickr.com/800/900/mocha-coffee?lock=44',
+  strawberry: 'https://loremflickr.com/800/900/strawberry-dessert?lock=45',
+  matcha: 'https://loremflickr.com/800/900/matcha-dessert?lock=46',
+}
+
+const SIZE_PHOTOS = {
+  regular: 'https://loremflickr.com/800/900/coffee-cup?lock=51',
+  large: 'https://loremflickr.com/800/900/large-coffee-cup?lock=52',
+}
+
+const SERVICE_PHOTOS = {
+  dine_in: 'https://loremflickr.com/800/900/cafe-table?lock=61',
+  take_home: 'https://loremflickr.com/800/900/takeaway-coffee?lock=62',
+}
+
 const defaultOptions = {
   base: 'milkshake',
   flavor: 'vanilla',
@@ -40,6 +100,214 @@ function renderToppingBreakdown(toppings = []) {
         <span>{formatMoney(toppingTotal)}</span>
       </li>
     </>
+  )
+}
+
+function getPreviewVisual(options) {
+  const base = PREVIEW_PALETTES[options.base] ?? PREVIEW_PALETTES.milkshake
+  const flavor = FLAVOR_SWATCHES[options.flavor] ?? FLAVOR_SWATCHES.vanilla
+  const selectedToppings = Array.isArray(options.toppings) ? options.toppings : []
+
+  return {
+    background: `radial-gradient(circle at top, ${base.glow} 0%, ${base.base} 42%, #f7eee5 100%)`,
+    accent: flavor,
+    cupColor: base.cup,
+    photo: DRINK_PHOTOS[options.base] ?? DRINK_PHOTOS.milkshake,
+    toppingDots: selectedToppings.slice(0, 4).map((topping, index) => ({
+      id: topping,
+      label: TOPPINGS[topping]?.label ?? topping,
+      icon: TOPPING_ICONS[topping] ?? '•',
+      photo: TOPPING_PHOTOS[topping] ?? TOPPING_PHOTOS.whipped_cream,
+      offset: index * 12,
+    })),
+  }
+}
+
+function buildPreviewSequence(options) {
+  const toppingIds = Array.isArray(options.toppings) ? options.toppings : []
+
+  return [
+    {
+      key: 'base',
+      step: '01',
+      label: 'Base',
+      title: BASE_DRINKS[options.base]?.label ?? 'Base drink',
+      note: 'Core drink style',
+      image: DRINK_PHOTOS[options.base] ?? DRINK_PHOTOS.milkshake,
+    },
+    {
+      key: 'flavor',
+      step: '02',
+      label: 'Flavor',
+      title: FLAVORS[options.flavor]?.label ?? 'Flavor',
+      note: 'Main flavor profile',
+      image: FLAVOR_PHOTOS[options.flavor] ?? FLAVOR_PHOTOS.vanilla,
+    },
+    {
+      key: 'size',
+      step: '03',
+      label: 'Size',
+      title: options.size === 'large' ? 'Large' : 'Regular',
+      note: options.size === 'large' ? 'More to enjoy' : 'Standard serving',
+      image: SIZE_PHOTOS[options.size] ?? SIZE_PHOTOS.regular,
+    },
+    {
+      key: 'toppings',
+      step: '04',
+      label: 'Toppings',
+      title: toppingIds.length ? `${toppingIds.length} selected` : 'None selected',
+      note: 'Add-ons layered on top',
+      items: toppingIds.length
+        ? toppingIds.map((topping) => ({
+            id: topping,
+            title: TOPPINGS[topping]?.label ?? topping,
+            image: TOPPING_PHOTOS[topping] ?? TOPPING_PHOTOS.whipped_cream,
+          }))
+        : [
+            {
+              id: 'none',
+              title: 'No toppings',
+              image: TOPPING_PHOTOS.whipped_cream,
+            },
+          ],
+    },
+    {
+      key: 'service',
+      step: '05',
+      label: 'Service',
+      title: options.serviceType === 'take_home' ? 'Take home' : 'Dine in',
+      note: options.serviceType === 'take_home' ? 'Packed to go' : 'Enjoy in cafe',
+      image: SERVICE_PHOTOS[options.serviceType] ?? SERVICE_PHOTOS.dine_in,
+    },
+  ]
+}
+
+function DrinkVisual({ options, compact = false, label }) {
+  const previewVisual = getPreviewVisual(options)
+  const selectedToppings = Array.isArray(options.toppings) ? options.toppings : []
+
+  return (
+    <div className={`drink-visual${compact ? ' compact' : ''}`} style={{ '--preview-accent': previewVisual.accent, '--preview-cup': previewVisual.cupColor, '--preview-bg': previewVisual.background }}>
+      <div className="drink-visual-stage">
+        <img className="drink-photo" src={previewVisual.photo} alt={`${BASE_DRINKS[options.base]?.label} drink photo`} />
+        <div className="drink-photo-overlay" />
+        <div className="preview-glow" />
+        <div className="preview-orb preview-orb-one" />
+        <div className="preview-orb preview-orb-two" />
+
+        <div className="preview-cup">
+          {label ? <span className="preview-drink-tag">{label}</span> : null}
+        </div>
+
+        <div className="preview-toppings">
+          {compact ? null : (
+            previewVisual.toppingDots.length ? (
+              previewVisual.toppingDots.map((topping) => (
+                <img
+                  className="preview-topping-badge"
+                  key={topping.id}
+                  src={topping.photo}
+                  alt={topping.label}
+                  style={{ transform: `translateY(${topping.offset}px)` }}
+                />
+              ))
+            ) : (
+              <span className="preview-empty-state">Add toppings to decorate the cup.</span>
+            )
+          )}
+        </div>
+      </div>
+      {compact ? (
+        <div className="drink-visual-caption">
+          <strong>{BASE_DRINKS[options.base]?.label}</strong>
+          <span>{selectedToppings.length ? `${selectedToppings.length} toppings` : 'No toppings'}</span>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function ImageChoiceGrid({ title, description, items, selectedValues, onToggle, multiple = false }) {
+  const selectedSet = new Set(Array.isArray(selectedValues) ? selectedValues : [selectedValues])
+
+  return (
+    <section className="choice-section">
+      <div className="choice-header">
+        <div>
+          <p className="choice-title">{title}</p>
+          <p className="choice-description">{description}</p>
+        </div>
+      </div>
+      <div className={`choice-grid${multiple ? ' multi' : ''}`}>
+        {items.map((item) => {
+          const selected = selectedSet.has(item.value)
+          return (
+            <button
+              key={item.value}
+              type="button"
+              className={`choice-card${selected ? ' selected' : ''}`}
+              onClick={() => onToggle(item.value)}
+              aria-pressed={selected}
+            >
+              <img src={item.image} alt={item.label} />
+              <span className="choice-overlay" />
+              <span className="choice-copy">
+                <span className="choice-label">{item.label}</span>
+                {item.note ? <span className="choice-note">{item.note}</span> : null}
+              </span>
+              {selected ? <span className="choice-selected-badge">Selected</span> : null}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function PreviewSummary({ options, liveBreakdown, prepTime, selectedToppings }) {
+  const previewVisual = getPreviewVisual(options)
+
+  return (
+    <div className="preview summary-only" style={{ '--preview-accent': previewVisual.accent, '--preview-bg': previewVisual.background }}>
+      <div className="preview-header">
+        <div>
+          <h3>Live Preview</h3>
+          <p className="preview-kicker">Text-only summary of your current order.</p>
+        </div>
+        <span className="preview-pill">Updated live</span>
+      </div>
+
+      <div className="summary-box">
+        <div>
+          <span className="summary-label">Base Drink</span>
+          <strong>{BASE_DRINKS[options.base]?.label}</strong>
+        </div>
+        <div>
+          <span className="summary-label">Flavor</span>
+          <strong>{FLAVORS[options.flavor]?.label}</strong>
+        </div>
+        <div>
+          <span className="summary-label">Size</span>
+          <strong>{options.size === 'large' ? 'Large' : 'Regular'}</strong>
+        </div>
+        <div>
+          <span className="summary-label">Service</span>
+          <strong>{options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}</strong>
+        </div>
+        <div className="summary-wide">
+          <span className="summary-label">Toppings</span>
+          <strong>{selectedToppings.length ? selectedToppings.join(' · ') : 'None'}</strong>
+        </div>
+        <div>
+          <span className="summary-label">Total</span>
+          <strong>{liveBreakdown ? formatMoney(liveBreakdown.total) : '$0.00'}</strong>
+        </div>
+        <div>
+          <span className="summary-label">Prep time</span>
+          <strong>{prepTime} min</strong>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -91,6 +359,8 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
 
   const liveBreakdown = useMemo(() => calculatePriceBreakdown(options), [options])
   const prepTime = useMemo(() => estimatePrepTime(options), [options])
+  const previewVisual = useMemo(() => getPreviewVisual(options), [options])
+  const selectedToppings = options.toppings.map((topping) => TOPPINGS[topping]?.label ?? topping)
 
   useEffect(() => {
     setFormError('')
@@ -123,33 +393,31 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="My Frost Favorite" />
       </label>
 
-      <label>
-        Base drink
-        <select
-          value={options.base}
-          onChange={(e) => setOptions((prev) => ({ ...prev, base: e.target.value }))}
-        >
-          {Object.entries(BASE_DRINKS).map(([key, value]) => (
-            <option key={key} value={key}>
-              {value.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <ImageChoiceGrid
+        title="Base Drink"
+        description="Pick the main drink with a representative photo."
+        selectedValues={options.base}
+        onToggle={(value) => setOptions((prev) => ({ ...prev, base: value }))}
+        items={Object.entries(BASE_DRINKS).map(([value, item]) => ({
+          value,
+          label: item.label,
+          note: `$${item.price.toFixed(2)}`,
+          image: DRINK_PHOTOS[value] ?? DRINK_PHOTOS.milkshake,
+        }))}
+      />
 
-      <label>
-        Flavor
-        <select
-          value={options.flavor}
-          onChange={(e) => setOptions((prev) => ({ ...prev, flavor: e.target.value }))}
-        >
-          {Object.entries(FLAVORS).map(([key, value]) => (
-            <option key={key} value={key}>
-              {value.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <ImageChoiceGrid
+        title="Flavor"
+        description="Choose the flavor layer shown on top of the drink."
+        selectedValues={options.flavor}
+        onToggle={(value) => setOptions((prev) => ({ ...prev, flavor: value }))}
+        items={Object.entries(FLAVORS).map(([value, item]) => ({
+          value,
+          label: item.label,
+          note: `$${item.price.toFixed(2)}`,
+          image: FLAVOR_PHOTOS[value] ?? FLAVOR_PHOTOS.vanilla,
+        }))}
+      />
 
       <div>
         <p>Size</p>
@@ -176,19 +444,19 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
       </div>
 
       <div>
-        <p>Toppings (explore freely)</p>
-        <div className="chips">
-          {Object.entries(TOPPINGS).map(([key, value]) => (
-            <label className="chip" key={key}>
-              <input
-                type="checkbox"
-                checked={options.toppings.includes(key)}
-                onChange={() => toggleTopping(key)}
-              />
-              {value.label}
-            </label>
-          ))}
-        </div>
+        <ImageChoiceGrid
+          title="Toppings"
+          description="Tap toppings to add or remove them."
+          multiple
+          selectedValues={options.toppings}
+          onToggle={toggleTopping}
+          items={Object.entries(TOPPINGS).map(([value, item]) => ({
+            value,
+            label: item.label,
+            note: `$${item.price.toFixed(2)}`,
+            image: TOPPING_PHOTOS[value] ?? TOPPING_PHOTOS.whipped_cream,
+          }))}
+        />
       </div>
 
       <div>
@@ -221,48 +489,45 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
 
       {formError ? <p className="error">{formError}</p> : null}
 
-      <div className="preview">
-        <h3>Live Preview</h3>
-        <p>
-          {BASE_DRINKS[options.base]?.label} · {FLAVORS[options.flavor]?.label} · {options.size}
-        </p>
-        <p>Toppings: {options.toppings.length ? options.toppings.map((t) => TOPPINGS[t].label).join(', ') : 'None'}</p>
-        <p>Service: {options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}</p>
-        <p className="strong">Total: {formatMoney(liveBreakdown?.total)}</p>
-        <p>⏱ {prepTime} min</p>
-        <button type="button" className="secondary" onClick={() => setShowBreakdown((v) => !v)}>
-          {showBreakdown ? 'Hide breakdown' : 'Show breakdown'}
-        </button>
-        {showBreakdown ? (
-          <ul className="breakdown-list">
-            <li className="breakdown-row">
-              <span>Base</span>
-              <span>{formatMoney(liveBreakdown?.base?.amount)}</span>
-            </li>
-            <li className="breakdown-row">
-              <span>Flavor</span>
-              <span>{formatMoney(liveBreakdown?.flavor?.amount)}</span>
-            </li>
-            <li className="breakdown-row">
-              <span>Size</span>
-              <span>{formatMoney(liveBreakdown?.size?.amount)}</span>
-            </li>
-            {renderToppingBreakdown(liveBreakdown?.toppings ?? [])}
-            <li className="breakdown-row">
-              <span>Subtotal</span>
-              <span>{formatMoney(liveBreakdown?.subtotal)}</span>
-            </li>
-            <li className="breakdown-row">
-              <span>{liveBreakdown?.discount?.label || 'Discount'}</span>
-              <span>-{formatMoney(liveBreakdown?.discount?.amount)}</span>
-            </li>
-            <li className="breakdown-row strong">
-              <span>Total</span>
-              <span>{formatMoney(liveBreakdown?.total)}</span>
-            </li>
-          </ul>
-        ) : null}
-      </div>
+      <PreviewSummary
+        options={options}
+        liveBreakdown={liveBreakdown}
+        prepTime={prepTime}
+        selectedToppings={selectedToppings}
+      />
+
+      <button type="button" className="secondary" onClick={() => setShowBreakdown((v) => !v)}>
+        {showBreakdown ? 'Hide breakdown' : 'Show breakdown'}
+      </button>
+      {showBreakdown ? (
+        <ul className="breakdown-list">
+          <li className="breakdown-row">
+            <span>Base</span>
+            <span>{formatMoney(liveBreakdown?.base?.amount)}</span>
+          </li>
+          <li className="breakdown-row">
+            <span>Flavor</span>
+            <span>{formatMoney(liveBreakdown?.flavor?.amount)}</span>
+          </li>
+          <li className="breakdown-row">
+            <span>Size</span>
+            <span>{formatMoney(liveBreakdown?.size?.amount)}</span>
+          </li>
+          {renderToppingBreakdown(liveBreakdown?.toppings ?? [])}
+          <li className="breakdown-row">
+            <span>Subtotal</span>
+            <span>{formatMoney(liveBreakdown?.subtotal)}</span>
+          </li>
+          <li className="breakdown-row">
+            <span>{liveBreakdown?.discount?.label || 'Discount'}</span>
+            <span>-{formatMoney(liveBreakdown?.discount?.amount)}</span>
+          </li>
+          <li className="breakdown-row strong">
+            <span>Total</span>
+            <span>{formatMoney(liveBreakdown?.total)}</span>
+          </li>
+        </ul>
+      ) : null}
     </form>
   )
 }
@@ -323,6 +588,7 @@ function DrinksListPage() {
       <div className="cards">
         {items.map((drink) => (
           <article className="card" key={drink.id}>
+            <DrinkVisual options={drink.options} compact label={FLAVORS[drink.options.flavor]?.label} />
             <h3>{drink.name}</h3>
             <p>{BASE_DRINKS[drink.options.base]?.label}</p>
             <p>
@@ -360,6 +626,7 @@ function DrinkDetailsPage() {
 
   return (
     <section className="panel">
+      <DrinkVisual options={drink.options} label={FLAVORS[drink.options.flavor]?.label} />
       <h1>{drink.name}</h1>
       <p>
         {BASE_DRINKS[drink.options.base]?.label} with {FLAVORS[drink.options.flavor]?.label}
