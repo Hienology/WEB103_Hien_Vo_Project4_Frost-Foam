@@ -31,28 +31,32 @@ const TOPPING_ICONS = {
 }
 
 const DRINK_PHOTOS = {
-  milkshake: 'https://loremflickr.com/800/900/milkshake?lock=21',
-  frappe: 'https://loremflickr.com/800/900/frappuccino?lock=22',
-  iced_latte: 'https://loremflickr.com/800/900/iced-latte?lock=23',
-  cream_soda: 'https://loremflickr.com/800/900/cream-soda?lock=24',
-  matcha: 'https://loremflickr.com/800/900/matcha-latte?lock=25',
+  milkshake:
+    'https://www.foodandwine.com/thmb/aYv9IwIyM4EKLL0o7W1CUSfjXzU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Vanilla-Milkshake-FT-MAG-RECIPE-0325-4ad53abc27a74f7687e510cc17d28d1d.jpg',
+  frappe: 'https://images.immediate.co.uk/production/volatile/sites/30/2025/07/GoodFoodFrappe-8757348.jpg',
+  iced_latte: 'https://thegirlonbloor.com/wp-content/uploads/2025/05/Iced-latte-hero.jpg',
+  cream_soda: 'https://japanesecooking101.com/wp-content/uploads/2017/07/DSC00088b.jpg',
+  matcha: 'https://www.natalieshealth.com/wp-content/uploads/2022/05/Iced-Coconut-Matcha-Latte-featured-image.jpeg',
 }
 
 const TOPPING_PHOTOS = {
-  whipped_cream: 'https://loremflickr.com/240/240/whipped-cream?lock=31',
-  boba: 'https://loremflickr.com/240/240/bubble-tea?lock=32',
-  jelly: 'https://loremflickr.com/240/240/jelly-dessert?lock=33',
-  chocolate_chips: 'https://loremflickr.com/240/240/chocolate-chips?lock=34',
-  cinnamon: 'https://loremflickr.com/240/240/cinnamon?lock=35',
+  whipped_cream:
+    'https://www.seriouseats.com/thmb/Nkx7nmi5D6fKrHmYkLopUwqTXrs=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/20221205-HowToWhipCream-AmandaSuarez-26-6600ee54f8dd466f9f2f5269d24afcb6.jpg',
+  boba: 'https://tyberrymuch.com/wp-content/uploads/2023/07/homemade-tapioca-pearl-boba-recipe-1.jpg',
+  jelly: 'https://cdn.mos.cms.futurecdn.net/5DBXDkPNSrZQu4Eauy72Tf.jpg',
+  chocolate_chips: 'https://upload.wikimedia.org/wikipedia/commons/9/96/Semi-sweet_chocolate_chips.jpg',
+  cinnamon: 'https://media.cnn.com/api/v1/images/stellar/prod/170807181545-herbs-and-spices-cinnamon.jpg?q=w_2278,h_1282,x_0,y_0,c_fill',
 }
 
 const FLAVOR_PHOTOS = {
-  vanilla: 'https://loremflickr.com/800/900/vanilla-dessert?lock=41',
-  caramel: 'https://loremflickr.com/800/900/caramel-sauce?lock=42',
-  hazelnut: 'https://loremflickr.com/800/900/hazelnut-coffee?lock=43',
-  mocha: 'https://loremflickr.com/800/900/mocha-coffee?lock=44',
-  strawberry: 'https://loremflickr.com/800/900/strawberry-dessert?lock=45',
-  matcha: 'https://loremflickr.com/800/900/matcha-dessert?lock=46',
+  vanilla: 'https://flavorsum.com/wp-content/uploads/2024/08/Vanilla-Blog-Header.jpg',
+  caramel:
+    'https://www.gmpopcorn.com/Portals/0/EasyDNNnews/1045/img-caramel-flavored-candies-with-caramel-syrup.jpg',
+  hazelnut:
+    'https://mississippimudcoffee.com/cdn/shop/articles/hazelnut_coffee_cornerstone.png?v=1760544167&width=1100',
+  mocha: 'https://itaberco.com/wp-content/uploads/2024/05/Mocha-Flavor-Compounds-1-kg-Mkp-2024-scaled.jpg',
+  strawberry: 'https://www.bickfordflavors.com/cdn/shop/articles/Strawberry_Ice_Cream_Bar_1024x1024.jpg?v=1648233825',
+  matcha: 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Matcha_Scoop.jpg',
 }
 
 const SIZE_PHOTOS = {
@@ -255,7 +259,6 @@ function ImageChoiceGrid({ title, description, items, selectedValues, onToggle, 
                 <span className="choice-label">{item.label}</span>
                 {item.note ? <span className="choice-note">{item.note}</span> : null}
               </span>
-              {selected ? <span className="choice-selected-badge">Selected</span> : null}
             </button>
           )
         })}
@@ -264,7 +267,7 @@ function ImageChoiceGrid({ title, description, items, selectedValues, onToggle, 
   )
 }
 
-function PreviewSummary({ options, liveBreakdown, prepTime, selectedToppings }) {
+function PreviewSummary({ options, liveBreakdown, prepTime, selectedToppings, showBreakdown, onToggleBreakdown }) {
   const previewVisual = getPreviewVisual(options)
 
   return (
@@ -274,7 +277,9 @@ function PreviewSummary({ options, liveBreakdown, prepTime, selectedToppings }) 
           <h3>Live Preview</h3>
           <p className="preview-kicker">Text-only summary of your current order.</p>
         </div>
-        <span className="preview-pill">Updated live</span>
+        <button type="button" className="secondary preview-toggle" onClick={onToggleBreakdown}>
+          {showBreakdown ? 'Hide breakdown' : 'Show breakdown'}
+        </button>
       </div>
 
       <div className="summary-box">
@@ -387,148 +392,151 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
   }
 
   return (
-    <form className="panel" onSubmit={handleSubmit}>
-      <label>
-        Custom drink name
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="My Frost Favorite" />
-      </label>
-
-      <ImageChoiceGrid
-        title="Base Drink"
-        description="Pick the main drink with a representative photo."
-        selectedValues={options.base}
-        onToggle={(value) => setOptions((prev) => ({ ...prev, base: value }))}
-        items={Object.entries(BASE_DRINKS).map(([value, item]) => ({
-          value,
-          label: item.label,
-          note: `$${item.price.toFixed(2)}`,
-          image: DRINK_PHOTOS[value] ?? DRINK_PHOTOS.milkshake,
-        }))}
-      />
-
-      <ImageChoiceGrid
-        title="Flavor"
-        description="Choose the flavor layer shown on top of the drink."
-        selectedValues={options.flavor}
-        onToggle={(value) => setOptions((prev) => ({ ...prev, flavor: value }))}
-        items={Object.entries(FLAVORS).map(([value, item]) => ({
-          value,
-          label: item.label,
-          note: `$${item.price.toFixed(2)}`,
-          image: FLAVOR_PHOTOS[value] ?? FLAVOR_PHOTOS.vanilla,
-        }))}
-      />
-
-      <div>
-        <p>Size</p>
-        <label className="inline-label">
-          <input
-            type="radio"
-            name="size"
-            value="regular"
-            checked={options.size === 'regular'}
-            onChange={() => setOptions((prev) => ({ ...prev, size: 'regular' }))}
-          />
-          Regular
+    <div className="drink-builder">
+      <form className="panel order-panel" onSubmit={handleSubmit}>
+        <label>
+          <span className="field-heading">Custom drink name</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="My Frost Favorite" />
         </label>
-        <label className="inline-label">
-          <input
-            type="radio"
-            name="size"
-            value="large"
-            checked={options.size === 'large'}
-            onChange={() => setOptions((prev) => ({ ...prev, size: 'large' }))}
-          />
-          Large
-        </label>
-      </div>
 
-      <div>
         <ImageChoiceGrid
-          title="Toppings"
-          description="Tap toppings to add or remove them."
-          multiple
-          selectedValues={options.toppings}
-          onToggle={toggleTopping}
-          items={Object.entries(TOPPINGS).map(([value, item]) => ({
+          title="Base Drink"
+          description="Pick the main drink with a representative photo."
+          selectedValues={options.base}
+          onToggle={(value) => setOptions((prev) => ({ ...prev, base: value }))}
+          items={Object.entries(BASE_DRINKS).map(([value, item]) => ({
             value,
             label: item.label,
             note: `$${item.price.toFixed(2)}`,
-            image: TOPPING_PHOTOS[value] ?? TOPPING_PHOTOS.whipped_cream,
+            image: DRINK_PHOTOS[value] ?? DRINK_PHOTOS.milkshake,
           }))}
         />
-      </div>
 
-      <div>
-        <p>Service</p>
-        <label className="inline-label">
-          <input
-            type="radio"
-            name="serviceType"
-            value="dine_in"
-            checked={options.serviceType === 'dine_in'}
-            onChange={() => setOptions((prev) => ({ ...prev, serviceType: 'dine_in' }))}
+        <ImageChoiceGrid
+          title="Flavor"
+          description="Choose the flavor layer shown on top of the drink."
+          selectedValues={options.flavor}
+          onToggle={(value) => setOptions((prev) => ({ ...prev, flavor: value }))}
+          items={Object.entries(FLAVORS).map(([value, item]) => ({
+            value,
+            label: item.label,
+            note: `$${item.price.toFixed(2)}`,
+            image: FLAVOR_PHOTOS[value] ?? FLAVOR_PHOTOS.vanilla,
+          }))}
+        />
+
+        <div>
+          <p className="field-heading">Size</p>
+          <label className="inline-label">
+            <input
+              type="radio"
+              name="size"
+              value="regular"
+              checked={options.size === 'regular'}
+              onChange={() => setOptions((prev) => ({ ...prev, size: 'regular' }))}
+            />
+            Regular
+          </label>
+          <label className="inline-label">
+            <input
+              type="radio"
+              name="size"
+              value="large"
+              checked={options.size === 'large'}
+              onChange={() => setOptions((prev) => ({ ...prev, size: 'large' }))}
+            />
+            Large
+          </label>
+        </div>
+
+        <div>
+          <ImageChoiceGrid
+            title="Toppings"
+            description="Tap toppings to add or remove them."
+            multiple
+            selectedValues={options.toppings}
+            onToggle={toggleTopping}
+            items={Object.entries(TOPPINGS).map(([value, item]) => ({
+              value,
+              label: item.label,
+              note: `$${item.price.toFixed(2)}`,
+              image: TOPPING_PHOTOS[value] ?? TOPPING_PHOTOS.whipped_cream,
+            }))}
           />
-          Dine in
-        </label>
-        <label className="inline-label">
-          <input
-            type="radio"
-            name="serviceType"
-            value="take_home"
-            checked={options.serviceType === 'take_home'}
-            onChange={() => setOptions((prev) => ({ ...prev, serviceType: 'take_home' }))}
-          />
-          Take home
-        </label>
+        </div>
+
+        <div className="service-section">
+          <p className="field-heading">Service</p>
+          <label className="inline-label">
+            <input
+              type="radio"
+              name="serviceType"
+              value="dine_in"
+              checked={options.serviceType === 'dine_in'}
+              onChange={() => setOptions((prev) => ({ ...prev, serviceType: 'dine_in' }))}
+            />
+            Dine in
+          </label>
+          <label className="inline-label">
+            <input
+              type="radio"
+              name="serviceType"
+              value="take_home"
+              checked={options.serviceType === 'take_home'}
+              onChange={() => setOptions((prev) => ({ ...prev, serviceType: 'take_home' }))}
+            />
+            Take home
+          </label>
+
+          <button type="submit" className="save-drink-button" disabled={submitting}>
+            {submitting ? 'Saving...' : 'Save drink'}
+          </button>
+        </div>
+
+        {formError ? <p className="error">{formError}</p> : null}
+      </form>
+
+      <div className="panel preview-panel">
+        <PreviewSummary
+          options={options}
+          liveBreakdown={liveBreakdown}
+          prepTime={prepTime}
+          selectedToppings={selectedToppings}
+          showBreakdown={showBreakdown}
+          onToggleBreakdown={() => setShowBreakdown((v) => !v)}
+        />
+
+        {showBreakdown ? (
+          <ul className="breakdown-list preview-breakdown">
+            <li className="breakdown-row">
+              <span>Base</span>
+              <span>{formatMoney(liveBreakdown?.base?.amount)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>Flavor</span>
+              <span>{formatMoney(liveBreakdown?.flavor?.amount)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>Size</span>
+              <span>{formatMoney(liveBreakdown?.size?.amount)}</span>
+            </li>
+            {renderToppingBreakdown(liveBreakdown?.toppings ?? [])}
+            <li className="breakdown-row">
+              <span>Subtotal</span>
+              <span>{formatMoney(liveBreakdown?.subtotal)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>{liveBreakdown?.discount?.label || 'Discount'}</span>
+              <span>-{formatMoney(liveBreakdown?.discount?.amount)}</span>
+            </li>
+            <li className="breakdown-row strong">
+              <span>Total</span>
+              <span>{formatMoney(liveBreakdown?.total)}</span>
+            </li>
+          </ul>
+        ) : null}
       </div>
-
-      <button type="submit" disabled={submitting}>
-        {submitting ? 'Saving...' : 'Save drink'}
-      </button>
-
-      {formError ? <p className="error">{formError}</p> : null}
-
-      <PreviewSummary
-        options={options}
-        liveBreakdown={liveBreakdown}
-        prepTime={prepTime}
-        selectedToppings={selectedToppings}
-      />
-
-      <button type="button" className="secondary" onClick={() => setShowBreakdown((v) => !v)}>
-        {showBreakdown ? 'Hide breakdown' : 'Show breakdown'}
-      </button>
-      {showBreakdown ? (
-        <ul className="breakdown-list">
-          <li className="breakdown-row">
-            <span>Base</span>
-            <span>{formatMoney(liveBreakdown?.base?.amount)}</span>
-          </li>
-          <li className="breakdown-row">
-            <span>Flavor</span>
-            <span>{formatMoney(liveBreakdown?.flavor?.amount)}</span>
-          </li>
-          <li className="breakdown-row">
-            <span>Size</span>
-            <span>{formatMoney(liveBreakdown?.size?.amount)}</span>
-          </li>
-          {renderToppingBreakdown(liveBreakdown?.toppings ?? [])}
-          <li className="breakdown-row">
-            <span>Subtotal</span>
-            <span>{formatMoney(liveBreakdown?.subtotal)}</span>
-          </li>
-          <li className="breakdown-row">
-            <span>{liveBreakdown?.discount?.label || 'Discount'}</span>
-            <span>-{formatMoney(liveBreakdown?.discount?.amount)}</span>
-          </li>
-          <li className="breakdown-row strong">
-            <span>Total</span>
-            <span>{formatMoney(liveBreakdown?.total)}</span>
-          </li>
-        </ul>
-      ) : null}
-    </form>
+    </div>
   )
 }
 
@@ -587,16 +595,27 @@ function DrinksListPage() {
       {error ? <p className="error">{error}</p> : null}
       <div className="cards">
         {items.map((drink) => (
-          <article className="card" key={drink.id}>
-            <DrinkVisual options={drink.options} compact label={FLAVORS[drink.options.flavor]?.label} />
-            <h3>{drink.name}</h3>
-            <p>{BASE_DRINKS[drink.options.base]?.label}</p>
-            <p>
-              {drink.options.size} · {drink.options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}
-            </p>
-            <p className="strong">${Number(drink.price).toFixed(2)}</p>
-            <p>⏱ {drink.prepTimeMinutes} min</p>
-            <Link to={`/drinks/${drink.id}`}>View details</Link>
+          <article className="card saved-drink-card" key={drink.id}>
+            <div className="saved-drink-image-wrap">
+              <img
+                className="saved-drink-image"
+                src={DRINK_PHOTOS[drink.options.base] ?? DRINK_PHOTOS.milkshake}
+                alt={BASE_DRINKS[drink.options.base]?.label}
+              />
+            </div>
+            <div className="saved-drink-content">
+              <div className="saved-drink-header">
+                <h3>{drink.name}</h3>
+                <p className="strong saved-drink-price">${Number(drink.price).toFixed(2)}</p>
+              </div>
+              <p className="saved-drink-meta">{BASE_DRINKS[drink.options.base]?.label}</p>
+              <p className="saved-drink-meta">
+                {drink.options.size === 'large' ? 'Large' : 'Regular'} · {drink.options.serviceType === 'take_home' ? 'Take home' : 'Dine in'} · ⏱ {drink.prepTimeMinutes} min
+              </p>
+              <Link className="saved-drink-link" to={`/drinks/${drink.id}`}>
+                View details
+              </Link>
+            </div>
           </article>
         ))}
       </div>

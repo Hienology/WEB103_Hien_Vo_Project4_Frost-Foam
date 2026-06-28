@@ -23,9 +23,10 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 10% -10%, #ffe6bf 0%, transparent 35%),
-    radial-gradient(circle at 92% 22%, #f3cfa3 0%, transparent 30%),
-    linear-gradient(135deg, #fff8ee 0%, #f5e4cb 45%, #edd4b2 100%);
+    linear-gradient(135deg, rgba(35, 22, 16, 0.72), rgba(72, 44, 29, 0.45)),
+    radial-gradient(circle at 10% -10%, rgba(255, 230, 191, 0.16) 0%, transparent 35%),
+    radial-gradient(circle at 92% 22%, rgba(243, 207, 163, 0.14) 0%, transparent 30%),
+    url('https://interiordesign.net/wp-content/uploads/2023/03/Interior-Design-Spacecraft-Bangkok-SPACECRAFT-EarlyBKK-29.jpg') center center / cover no-repeat fixed;
   background-attachment: fixed;
 }
 
