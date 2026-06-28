@@ -21,33 +21,12 @@ nav {
   padding: 0.45rem 0;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: linear-gradient(150deg, #d99857, #b26d34);
-  color: #fff;
+.site-title {
+  margin: 0;
+  font-family: 'Kanit', sans-serif;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
   font-weight: 700;
-}
-
-.brand-title {
-  margin: 0;
-  font-family: 'Fraunces', serif;
-  font-size: 1rem;
-}
-
-.brand-sub {
-  margin: 0;
-  font-size: 0.76rem;
-  color: #6b5140;
+  letter-spacing: 0.01em;
 }
 
 .nav-links {
@@ -57,6 +36,7 @@ nav {
 
 .nav-links a {
   text-decoration: none;
+  font-family: 'Kanit', sans-serif;
   font-weight: 600;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
@@ -75,9 +55,12 @@ nav {
   padding: 1rem 1.05rem;
 }
 
-form.panel {
-  display: grid;
-  gap: 1rem;
+.site-title {
+  margin: 0;
+  font-family: 'Kanit', sans-serif;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 input,
@@ -104,16 +87,16 @@ button {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(84, 47, 24, 0.23);
+  font-family: 'Kanit', sans-serif;
 }
 
 button.secondary {
-  background: #9e7356;
   box-shadow: none;
 }
 
 .inline-label {
   display: inline-flex;
-  gap: 0.4rem;
+  font-family: 'Kanit', sans-serif;
   margin-right: 0.75rem;
 }
 
@@ -214,4 +197,11 @@ button.secondary {
     flex-direction: column;
     gap: 0.7rem;
   }
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Kanit', sans-serif;
+  letter-spacing: 0.01em;
 }

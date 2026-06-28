@@ -288,7 +288,7 @@ function BuilderPage() {
 
   return (
     <section>
-      <h1>Frost & Foam</h1>
+      <h1>Make your own cup</h1>
       <p className="subtitle">Build your custom café drink with live price and prep-time preview.</p>
       {error ? <p className="error">{error}</p> : null}
       <DrinkForm onSave={handleSave} submitting={saving} />
@@ -453,13 +453,7 @@ function App() {
   return (
     <div className="app-shell">
       <nav>
-        <div className="brand">
-          <span className="brand-mark">F&F</span>
-          <div>
-            <p className="brand-title">Frost & Foam</p>
-            <p className="brand-sub">Craft your perfect sip</p>
-          </div>
-        </div>
+        <h1 className="site-title">FROST & FOAM</h1>
         <div className="nav-links">
           <Link to="/">Customizer</Link>
           <Link to="/drinks">Saved Drinks</Link>
