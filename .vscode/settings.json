@@ -1,0 +1,12 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd /workspaces/WEB103_Hien_Vo_Project4_Frost-Foam/server && npm run dev$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cd /workspaces/WEB103_Hien_Vo_Project4_Frost-Foam/client && npm run dev -- --host 0\\.0\\.0\\.0$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

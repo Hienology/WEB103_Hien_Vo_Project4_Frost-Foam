@@ -33,3 +33,11 @@ export const PREP_TIMING = {
   toppingMinutes: 0.75,
   dineInMinutes: 0.5,
 }
+
+export const RULES = {
+  maxTakeHomeToppings: 3,
+  disallowedToppingsByBase: {
+    cream_soda: ['whipped_cream'],
+    matcha: ['jelly'],
+  },
+}

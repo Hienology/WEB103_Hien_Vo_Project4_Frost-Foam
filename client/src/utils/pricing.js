@@ -27,9 +27,19 @@ export function calculatePriceBreakdown(options = {}) {
   const total = Math.max(0, subtotal - discount)
 
   return {
+    base: { label: base.label, amount: toMoney(base.price) },
+    flavor: { label: flavor.label, amount: toMoney(flavor.price) },
+    size: { label: size === 'large' ? 'Large' : 'Regular', amount: toMoney(SIZE_PRICES[size]) },
+    toppings: toppings
+      .map((id) => TOPPINGS[id])
+      .filter(Boolean)
+      .map((topping) => ({ label: topping.label, amount: toMoney(topping.price) })),
+    discount: {
+      label: serviceType === 'take_home' ? 'Take-home discount' : 'No discount',
+      amount: toMoney(discount),
+    },
     subtotal: toMoney(subtotal),
     total: toMoney(total),
-    discount: toMoney(discount),
   }
 }
 

@@ -36,6 +36,20 @@ npm run dev
 By default, frontend API calls target `http://localhost:3001/api`.
 You can override this with `VITE_API_URL`.
 
+Create `client/.env` with:
+
+```bash
+VITE_API_URL=http://localhost:3001/api
+```
+
+If you are using GitHub Codespaces, point it to your forwarded backend URL instead:
+
+```bash
+VITE_API_URL=https://<your-codespace-name>-3001.app.github.dev/api
+```
+
+Also ensure port `3001` is forwarded and visible in the Codespaces **Ports** panel.
+
 ## Tests
 
 Backend focused tests for pricing/prep-time/validation:

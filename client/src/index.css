@@ -1,9 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap');
 
 :root {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #1f2530;
-  background: #f4efe8;
+  --ink: #2f2219;
+  --cream: #fff7ec;
+  --latte: #f4e3c8;
+  --caramel: #cc8c4d;
+  --mocha: #6a442a;
+  --espresso: #2f2219;
+  --rose: #9b3a2a;
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--cream);
   line-height: 1.5;
 }
 
@@ -14,18 +23,20 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-image:
-    linear-gradient(rgba(248, 242, 233, 0.82), rgba(248, 242, 233, 0.82)),
-    radial-gradient(circle at top right, #d6bfa4 0%, #8f6d52 45%, #5e4a3b 100%);
-  background-size: cover;
+  background:
+    radial-gradient(circle at 10% -10%, #ffe6bf 0%, transparent 35%),
+    radial-gradient(circle at 92% 22%, #f3cfa3 0%, transparent 30%),
+    linear-gradient(135deg, #fff8ee 0%, #f5e4cb 45%, #edd4b2 100%);
+  background-attachment: fixed;
 }
 
 a {
-  color: #5e4a3b;
+  color: var(--mocha);
 }
 
 h1,
 h2,
 h3 {
-  font-family: 'Kanit', sans-serif;
+  font-family: 'Fraunces', 'Kanit', serif;
+  letter-spacing: 0.01em;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
-import { BASE_DRINKS, FLAVORS, TOPPINGS } from './config/catalog'
+import { BASE_DRINKS, FLAVORS, RULES, TOPPINGS } from './config/catalog'
 import { estimatePrepTime, calculatePriceBreakdown } from './utils/pricing'
 import { drinksApi } from './services/drinksApi'
 import './App.css'
@@ -13,13 +13,88 @@ const defaultOptions = {
   serviceType: 'dine_in',
 }
 
+function formatMoney(amount = 0) {
+  return `$${Number(amount).toFixed(2)}`
+}
+
+function renderToppingBreakdown(toppings = []) {
+  const toppingTotal = toppings.reduce((sum, item) => sum + item.amount, 0)
+
+  return (
+    <>
+      {toppings.length ? (
+        toppings.map((item) => (
+          <li key={item.label} className="breakdown-row">
+            <span>{item.label}</span>
+            <span className="breakdown-addon">+{formatMoney(item.amount)}</span>
+          </li>
+        ))
+      ) : (
+        <li className="breakdown-row">
+          <span>None</span>
+          <span>{formatMoney(0)}</span>
+        </li>
+      )}
+      <li className="breakdown-row strong">
+        <span>Topping add-ons total</span>
+        <span>{formatMoney(toppingTotal)}</span>
+      </li>
+    </>
+  )
+}
+
+function validateDrinkSelection(name, options = {}) {
+  if (!name || !String(name).trim()) {
+    return 'Please provide a name for your custom drink.'
+  }
+
+  if (!BASE_DRINKS[options.base]) {
+    return 'Please choose a valid base drink.'
+  }
+
+  if (!FLAVORS[options.flavor]) {
+    return 'Please choose a valid flavor.'
+  }
+
+  if (!['regular', 'large'].includes(options.size)) {
+    return 'Please choose a valid size.'
+  }
+
+  if (!['dine_in', 'take_home'].includes(options.serviceType)) {
+    return 'Please choose a valid service type.'
+  }
+
+  const toppings = Array.isArray(options.toppings) ? options.toppings : []
+  const invalidTopping = toppings.find((topping) => !TOPPINGS[topping])
+  if (invalidTopping) {
+    return 'One or more selected toppings are invalid.'
+  }
+
+  const disallowed = RULES.disallowedToppingsByBase[options.base] || []
+  const blockedTopping = toppings.find((topping) => disallowed.includes(topping))
+  if (blockedTopping) {
+    return `The topping "${TOPPINGS[blockedTopping].label}" is not compatible with ${BASE_DRINKS[options.base].label}.`
+  }
+
+  if (options.serviceType === 'take_home' && toppings.length > RULES.maxTakeHomeToppings) {
+    return `Take-home drinks can include at most ${RULES.maxTakeHomeToppings} toppings.`
+  }
+
+  return null
+}
+
 function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, submitting }) {
   const [name, setName] = useState(initialName)
   const [options, setOptions] = useState(initialOptions)
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const [formError, setFormError] = useState('')
 
   const liveBreakdown = useMemo(() => calculatePriceBreakdown(options), [options])
   const prepTime = useMemo(() => estimatePrepTime(options), [options])
+
+  useEffect(() => {
+    setFormError('')
+  }, [name, options])
 
   const toggleTopping = (id) => {
     setOptions((prev) => ({
@@ -32,7 +107,13 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    onSave({ name, options })
+    const validationError = validateDrinkSelection(name, options)
+    if (validationError) {
+      setFormError(validationError)
+      return
+    }
+
+    onSave({ name: String(name).trim(), options })
   }
 
   return (
@@ -138,6 +219,8 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
         {submitting ? 'Saving...' : 'Save drink'}
       </button>
 
+      {formError ? <p className="error">{formError}</p> : null}
+
       <div className="preview">
         <h3>Live Preview</h3>
         <p>
@@ -145,15 +228,38 @@ function DrinkForm({ initialName = '', initialOptions = defaultOptions, onSave, 
         </p>
         <p>Toppings: {options.toppings.length ? options.toppings.map((t) => TOPPINGS[t].label).join(', ') : 'None'}</p>
         <p>Service: {options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}</p>
-        <p className="strong">Total: ${liveBreakdown?.total.toFixed(2)}</p>
+        <p className="strong">Total: {formatMoney(liveBreakdown?.total)}</p>
         <p>⏱ {prepTime} min</p>
         <button type="button" className="secondary" onClick={() => setShowBreakdown((v) => !v)}>
           {showBreakdown ? 'Hide breakdown' : 'Show breakdown'}
         </button>
         {showBreakdown ? (
-          <ul>
-            <li>Subtotal: ${liveBreakdown?.subtotal.toFixed(2)}</li>
-            <li>Discount: -${liveBreakdown?.discount.toFixed(2)}</li>
+          <ul className="breakdown-list">
+            <li className="breakdown-row">
+              <span>Base</span>
+              <span>{formatMoney(liveBreakdown?.base?.amount)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>Flavor</span>
+              <span>{formatMoney(liveBreakdown?.flavor?.amount)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>Size</span>
+              <span>{formatMoney(liveBreakdown?.size?.amount)}</span>
+            </li>
+            {renderToppingBreakdown(liveBreakdown?.toppings ?? [])}
+            <li className="breakdown-row">
+              <span>Subtotal</span>
+              <span>{formatMoney(liveBreakdown?.subtotal)}</span>
+            </li>
+            <li className="breakdown-row">
+              <span>{liveBreakdown?.discount?.label || 'Discount'}</span>
+              <span>-{formatMoney(liveBreakdown?.discount?.amount)}</span>
+            </li>
+            <li className="breakdown-row strong">
+              <span>Total</span>
+              <span>{formatMoney(liveBreakdown?.total)}</span>
+            </li>
           </ul>
         ) : null}
       </div>
@@ -173,7 +279,8 @@ function BuilderPage() {
       await drinksApi.create(payload)
       navigate('/drinks')
     } catch (err) {
-      setError(err.message)
+      const detail = err instanceof Error ? err.message : String(err)
+      setError(detail || 'Failed to save your drink.')
     } finally {
       setSaving(false)
     }
@@ -217,11 +324,11 @@ function DrinksListPage() {
         {items.map((drink) => (
           <article className="card" key={drink.id}>
             <h3>{drink.name}</h3>
+            <p>{BASE_DRINKS[drink.options.base]?.label}</p>
             <p>
-              {BASE_DRINKS[drink.options.base]?.label} · {drink.options.size} ·{' '}
-              {drink.options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}
+              {drink.options.size} · {drink.options.serviceType === 'take_home' ? 'Take home' : 'Dine in'}
             </p>
-            <p>${Number(drink.price).toFixed(2)}</p>
+            <p className="strong">${Number(drink.price).toFixed(2)}</p>
             <p>⏱ {drink.prepTimeMinutes} min</p>
             <Link to={`/drinks/${drink.id}`}>View details</Link>
           </article>
@@ -257,18 +364,35 @@ function DrinkDetailsPage() {
       <p>
         {BASE_DRINKS[drink.options.base]?.label} with {FLAVORS[drink.options.flavor]?.label}
       </p>
-      <p>Price: ${Number(drink.price).toFixed(2)}</p>
+      <p>Price: {formatMoney(drink.price)}</p>
       <p>⏱ {drink.prepTimeMinutes} min</p>
       <h3>Price Breakdown</h3>
-      <ul>
-        <li>Base: ${drink.priceBreakdown.base.amount.toFixed(2)}</li>
-        <li>Flavor: ${drink.priceBreakdown.flavor.amount.toFixed(2)}</li>
-        <li>Size: ${drink.priceBreakdown.size.amount.toFixed(2)}</li>
-        <li>
-          Toppings: $
-          {drink.priceBreakdown.toppings.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+      <ul className="breakdown-list">
+        <li className="breakdown-row">
+          <span>Base</span>
+          <span>{formatMoney(drink.priceBreakdown.base.amount)}</span>
         </li>
-        <li>Discount: -${drink.priceBreakdown.discount.amount.toFixed(2)}</li>
+        <li className="breakdown-row">
+          <span>Flavor</span>
+          <span>{formatMoney(drink.priceBreakdown.flavor.amount)}</span>
+        </li>
+        <li className="breakdown-row">
+          <span>Size</span>
+          <span>{formatMoney(drink.priceBreakdown.size.amount)}</span>
+        </li>
+        {renderToppingBreakdown(drink.priceBreakdown.toppings)}
+        <li className="breakdown-row">
+          <span>Subtotal</span>
+          <span>{formatMoney(drink.priceBreakdown.subtotal)}</span>
+        </li>
+        <li className="breakdown-row">
+          <span>{drink.priceBreakdown.discount.label}</span>
+          <span>-{formatMoney(drink.priceBreakdown.discount.amount)}</span>
+        </li>
+        <li className="breakdown-row strong">
+          <span>Total</span>
+          <span>{formatMoney(drink.priceBreakdown.total)}</span>
+        </li>
       </ul>
       <div className="actions">
         <Link to={`/drinks/${drink.id}/edit`}>Edit</Link>
@@ -284,34 +408,37 @@ function EditDrinkPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [drink, setDrink] = useState(null)
-  const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    drinksApi.get(id).then(setDrink).catch((err) => setError(err.message))
+    drinksApi.get(id).then(setDrink).catch((err) => setLoadError(err.message))
   }, [id])
 
   const onSave = async (payload) => {
-    setError('')
+    setSaveError('')
     setSaving(true)
     try {
       await drinksApi.update(id, payload)
       navigate(`/drinks/${id}`)
     } catch (err) {
-      setError(err.message)
+      setSaveError(err.message)
     } finally {
       setSaving(false)
     }
   }
 
-  if (error) return <p className="error">{error}</p>
-  if (!drink) return <p>Loading...</p>
+  if (!drink) {
+    if (loadError) return <p className="error">{loadError}</p>
+    return <p>Loading...</p>
+  }
 
   return (
     <section>
       <h1>Edit Drink</h1>
       <p className="subtitle">Adjust your previous choices and resave.</p>
-      {error ? <p className="error">{error}</p> : null}
+      {saveError ? <p className="error">{saveError}</p> : null}
       <DrinkForm
         initialName={drink.name}
         initialOptions={drink.options}
@@ -326,8 +453,17 @@ function App() {
   return (
     <div className="app-shell">
       <nav>
-        <Link to="/">Customizer</Link>
-        <Link to="/drinks">Saved Drinks</Link>
+        <div className="brand">
+          <span className="brand-mark">F&F</span>
+          <div>
+            <p className="brand-title">Frost & Foam</p>
+            <p className="brand-sub">Craft your perfect sip</p>
+          </div>
+        </div>
+        <div className="nav-links">
+          <Link to="/">Customizer</Link>
+          <Link to="/drinks">Saved Drinks</Link>
+        </div>
       </nav>
       <Routes>
         <Route path="/" element={<BuilderPage />} />
